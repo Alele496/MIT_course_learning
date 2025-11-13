@@ -14,4 +14,10 @@
 
 ### Second submission
 
+#### 1. Watch the MIT open class 5-6
+
+#### 2. Complete Lab-1
+
+### Third submission
+
 ......
