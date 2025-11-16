@@ -20,4 +20,10 @@
 
 ### Third submission
 
+#### 1. Watch the MIT open class 7-8
+
+#### 2. Complete Lab-2
+
+### Foutrh submission
+
 ......

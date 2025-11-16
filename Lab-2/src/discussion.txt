@@ -1,0 +1,33 @@
+
+
+1.Discussion Question 1 (1 Point): Hardware-wise, unsigned addition is the same as signed addition when using two's complement encoding. Using evidence from the test bench, is unsigned multiplication the same as signed multiplication?
+    Answer: Not the same. When the input value is negative, the output result is different.
+
+2.Discussion Question 2 (2 Points): In mkTBDumb excluding the line and modifying the rest of the module to have will result in a compilation error. What is that error? How does the original code fix the compilation error? You could also fix the error by having two function definitions as shown below.
+        Why is two function definitions not necessary? (i.e. why can the second operand to mkTbMulFunction have variables in its type?) Hint: Look at the types of the operands of mkTbMulFunction in TestBenchTemplates.bsv.
+    Answer: Determine specific types by difining test functions.
+            BSV can automatically deduce the type, and when the test function is the first parmeter, the second parmeter can match the same type as the first parmeter.
+
+3.Discussion Question 3 (1 Point): Is your implementation of multiply_by_adding a signed multiplier or an unsigned multiplier? (Note: if it does not match either multiply_signed or multiply_unsigned, it is wrong).
+    Answer: Is multiply_unsigned.
+
+
+
+4.Discussion Question 4 (1 Point): Fill in above table in discussion.txt. None of the Radix-4 Booth encodings should have more than one non-zero symbol in them.
+
+Current Bits	Previous Bit	Original Booth Encoding 	Radix-4 Booth Encoding
+    00	             0		               00                         00
+    00	             1		               0+                         +m
+    01	             0	                   +-	                      +m
+    01	             1		               +0                         +2m
+    10	             0		               -0                         -2m
+    10	             1		               -+                         -m
+    11	             0		               0-                         -m
+    11	             1		               00                         00
+
+
+5.Discussion Question 5 (1 Point): Now consider extending your Booth multiplier even further to a radix-8 Booth multiplier. This would be like doing 3 steps of the radix-2 Booth multiplier in a single step. Can all radix-8 Booth encodings be represented with only one non-zero symbol like the radix-4 Booth multiplier? Do you think it would still make sense to make a radix-8 Booth multiplier?
+    Answer: I don't think it makes much sense. The idea is based on Radix-2 multiplier, a multiplier of 8 or more has little improvement in efficiency. 
+
+6.Discussion Question 6 (Optional): How long did you take to work on this lab?
+    Answer: Not less than 10 hours. It really took me a long time this time, and it took me a long time to understand the exercises, understand the algorithms and debug bugs.
