@@ -1,0 +1,19 @@
+
+BSV编译器具有的规则调度和冲突检测机制
+
+1. 折叠FFT是重复调用对应蝴蝶单元，但是BSV编译器不允许同一周期内，多个规则写入同一寄存器，而case所有分支都是在统一规则域中，不符合要求。
+    Folded FFT repeatedly calls the corresponding butterfly unit, but the BSV compiler does not allow multiple rules to write to the same register in the same cycle. 
+    Since all branches of the case statement are within a single rule domain, it does not meet the requirement.
+
+    推荐方法：if-else 直接。
+        typedef union tagged {void Valid; void Invalid;} Validbit deriving (Eq, Bits); 搭配case。
+        多规则 条理清晰
+    Recommended approach: if-else directly. 
+        typedef union tagged {void Valid; void Invalid;} Validbit deriving (Eq, Bits); used together with case. 
+        Splitting multiple rules for clarity.
+
+2. 弹性FFT和非弹性FFT：在我看来，弹性意味着当你有数据时可以执行下一阶段，而非弹性意味着你必须等到上一个阶段结束后才能执行下一阶段。
+    Elastic FFT and InElastic FFT: in my opinion,
+                Elasticity means that you can execute the next stage when you have data, 
+            and inelasticity means that you must wait for the end og the previous stage before executing the next stage.
+        

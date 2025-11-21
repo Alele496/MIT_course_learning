@@ -1,0 +1,14 @@
+
+Discussion Questions 1 and 2:
+
+Assume you are given a black box module that performs a 10-stage algorithm. You can not look at its internal implementation, but you can test this module by giving it data and looking at the output of the module. You have been told that it is implemented as one of the structures covered in this lab, but you do not know which one.
+
+1.How can you tell whether the implementation of the module is a folded implementation or whether it is a pipeline implementation? (3 Points)
+    Answer: 连续输入10个数据，查看对应输出周期，输出有间隔（刚好是10个周期）为折叠FFT，输出连续则为流水线FFT
+            Continuously input 10 pieces of data and observe the corresponding output period.
+            If the output has intervals (exactly 10 cycles), it is a folded FFT; if the output is continuous, it is a pipelined FFT.
+
+2.Once you know the module has a pipeline structure, how can you tell if it is inelastic or if it is elastic? (2 Points)
+    Answer: 连续输入数据，然后在运行中途阻塞中间某一阶段，看是否有输出，后续有输出是弹性，没有输出的是非弹性
+            Continuously input data, then block at a certain stage during execution to see if there is any output. 
+            If there is output afterwards, it is elastic; if there is no output, it is inelastic.
