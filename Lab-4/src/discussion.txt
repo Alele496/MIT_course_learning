@@ -2,51 +2,52 @@
     methods of mkMyConflictFifo?
 
 notEmpty
-    read:
-    written:
+    read:       empty
+    written:    not
 first
-    read:
-    written:
+    read:       data, empty, deqP
+    written:    not
 deq
-    read:
-    written:
+    read:       empty
+    written:    deqP, full, empty
 notFull
-    read:
-    written:
+    read:       full
+    written:    not
 enq
-    read:
-    written:
+    read:       full
+    written:    full, data, enqP, empty
 clear
-    read:
-    written:
+    read:       not
+    written:    enqP, deqP, full, empty
 
 
 
 2. Fill the conflict Matrix for mkMyConflictFifo.
 
-           notEmpty   first   deq   notFull   enq   clear
-         +----------+-------+-----+---------+-----+-------+
-notEmpty |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
-first    |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
-deq      |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
-notFull  |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
-enq      |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
-clear    |          |       |     |         |     |       |
-         +----------+-------+-----+---------+-----+-------+
+             notEmpty     first     deq     notFull     enq     clear
+         +------------+---------+-------+-----------+-------+---------+
+notEmpty |     CF     |    <    |   <   |     CF    |   >   |    <    |
+         +------------+---------+-------+-----------+-------+---------+
+first    |     >      |    CF   |   C   |     >     |   C   |    >    |
+         +------------+---------+-------+-----------+-------+---------+
+deq      |     >      |    <    |   C   |     >     |   C   |    >    |
+         +------------+---------+-------+-----------+-------+---------+
+notFull  |     CF     |    <    |   <   |     CF    |   <   |    <    |
+         +------------+---------+-------+-----------+-------+---------+
+enq      |     >      |    C    |   C   |     >     |   C   |    >    |
+         +------------+---------+-------+-----------+-------+---------+
+clear    |     >      |    <    |   <   |     >     |   <   |    >    |
+         +------------+---------+-------+-----------+-------+---------+
 
 
 
 3. Which conflicts from mkMyConflictFifo do not match the conflict-free FIFO
     scheduling constraints?
-
+    Answer: enq and deq are C, not CF → cannot be executed simultaneously
 
 
 4. In your design of the clear method in mkMyCFFifo, how did you force the
     scheduling constraint {enq, deq} < clear?
-
+    Answer: I used EHR port ordering: all state is stored in `Ehr#(2, ...)` registers. Normal operations (enq/deq) write to port 0, while `clear` writes to port 1. 
+        Since port 1 has higher priority than port 0 in the EHR conflict matrix, clear always overrides concurrent enq/deq operations, enforcing the required scheduling constraint.
 
