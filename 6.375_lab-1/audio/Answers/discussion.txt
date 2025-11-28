@@ -1,0 +1,31 @@
+
+
+1. In section 4.3 we asked you to compare the hardware generated for the FIR lter before using
+ for-loops, and then again after. How does using for-loops in the Bluespec source code change
+ the hardware the compiler generates for the FIR lter? How has the area and critical-path
+ delay of your hardware change by using for-loops in Bluespec?
+    Answer: In theory, nothing changes, because unrolling a for-loop just makes the code look cleaner and more convenient.
+            Path delays may vary, could be optimized to different extents, or may be the same.
+
+
+2. How many lines of code would you have to change in the original lter description without
+ a for-loop and vectors if we wanted to turn it into a 16 tap FIR lter? How many lines of
+ code have to change in the version with the for-loop? A 256 tap FIR lter? Comment on
+ how for-loops can be used to write source code which is more generic and easily reusable in
+ di erent situations.
+    Answer: 8 registers and 8 multipliers, about 16 lines. You probably only need to change one parameter in the for-loop.
+            256 tap About 400-some lines, nearly 500 lines. You probably only need to change one parameter in the for-loop too.
+
+
+3. After switching your lter to use the multistage multiplier in place of the Verilog * operator,
+ the builders of the multiplier discover an enhancement they can make to their implementation
+ of the multiplier. How does your implementation of the lter have to change to accommodate
+ the new implementation of the multiplier assuming the multiplier interface stays the same?
+    Answer: No adjustments are needed, because the interface remains the same and the internal implementation of the multiplier has little impact on the FIR.
+
+
+4. After you successfully changed FIR lter using multi-stage multipliers, how do the area and
+ critical path delay compare with results from unstatic and statically elaborated Bluespec code
+ in sections 4.2 and 4.3?
+    Answer: It should be that the multi-level multiplier has a larger area and higher efficiency, while 4.3 and 4.2 have smaller areas and are slower .
+        (however, I haven't done synthesis analysis yet because I'm still setting up the environment; this is just my guess).

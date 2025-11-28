@@ -40,4 +40,12 @@
 
 ### Sixth submission
 
+#### 1. **Looking for relevant information and setting up the environment**
+
+#### 2. Watch the MIT open class 13-14
+
+#### 3. Complete 6.375 Lab-1
+
+### **Seventh submission**
+
 ......
