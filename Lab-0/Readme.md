@@ -48,4 +48,11 @@
 
 ### **Seventh submission**
 
+#### 1. Watch the MIT open class 15
+
+#### 2. Complete 6.375 Lab-2
+
+### **Eighth submission**
+
 ......
+
