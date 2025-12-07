@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <fftw3.h>
+#include "fftw3.h"
 
 // N - number of points in the fft.
 // A value of 1024 (with S 64) gives a nice sounding output.
@@ -65,7 +65,20 @@ void pitchadjust(complex double* in, complex double* out)
     static double inphases[N] = {0};
     static double outphases[N] = {0};
 
-    bzero(out, sizeof(complex double) * N);
+    static int call_count = 0;
+
+    // bzero(out, sizeof(complex double) * N);
+    memset(out, 0, sizeof(complex double) * N);
+
+    // Print 3 times
+    if (call_count < 3) {
+        printf("=== Call %d ===\n", call_count);
+        printf("Input vector:\n");
+        for (int i = 0; i < N; i++) {
+            printf("  bin[%d]: mag=%f, phase=%f\n", 
+                   i, cabs(in[i]), carg(in[i]));
+        }
+    }
 
     int i;
     for (i = 0; i < N; i++) {
@@ -86,6 +99,17 @@ void pitchadjust(complex double* in, complex double* out)
             outphases[bin] += shifted;
             out[bin] = cmplxmp(mag, outphases[bin]);
         }
+    }
+
+    // Print 
+    if (call_count < 3) {
+        printf("Output vector:\n");
+        for (int i = 0; i < N; i++) {
+            printf("  bin[%d]: mag=%f, phase=%f\n", 
+                   i, cabs(out[i]), carg(out[i]));
+        }
+        printf("\n");
+        call_count++;
     }
 }
 
