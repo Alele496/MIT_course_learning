@@ -1,0 +1,34 @@
+
+1.Describe your design of the mkPitchAdjust module. How many cycles does it take to do a
+single round of pitch adjustment in your design?
+    Answer: I designed it with sequential logic, 
+        and the number of cycles is about 40 cycles to complete a complete pitch adjustment.
+
+
+2. Describe your design of the ToMP and FromMP modules. How many cycles does it take to convert
+a Vector of N Complex numbers to a Vector of N ComplexMP numbers assuming it takes K
+cycles to convert a single number?
+    Answer: ToMP module:
+                Input: Orthogonal Coordinate Complex Vector (Complex)
+                Use a single CORDIC instance (mkCordicToMagnitudePhase)
+                Convert element by element, and the results are collected into the output vector.
+                Use FIFO to buffer input and output, and the state machine controls the conversion process
+            FromMP module:
+                Similar architecture, using mkCordicFromMagnitudePhase
+                Input: Polar Coordinate Complex Vector (ComplexMP)
+                Output: Right-angled coordinate complex vector
+            psize=16, so N × K = 8 × 16 = 128, about 130 cycles.
+
+
+3. What portion of your time in this lab was spent initially implementing the mkPitchAdjust
+module and completing the pipeline, and what portion of your time was spent designing and
+implementing tests and debugging the pipeline?
+    Answer: Implement the mkPitchAdjust module and complete the assembly line :40%
+            Design and implement testing and debugging pipelines :             60%
+
+
+4. Report the synthesis result (i.e., area and critical path) of your mkAudioPipeline module.
+The report also shows you where the critical path starts and ends. Can you figure out which
+module accounts for the critical path?
+    Answer: Due to the problem of tool chain configuration in the experimental environment, I used the open source comprehensive tool Yosys for simple analysis.
+        I guess the CORDIC module may be the key path, occupying the most
