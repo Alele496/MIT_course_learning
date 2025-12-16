@@ -6,6 +6,22 @@ synth_dir = /tmp/6375-lab3-${USER}
 
 src = PitchAdjust.bsv PitchAdjustTest.bsv $(wildcard ../common/*.bsv) $(wildcard ../fft/*.bsv) $(wildcard ../fir/*.bsv) 
 
+VERILOG_DIR = verilog
+COMMON_DIR = ../common
+BSCDIR = bscdir
+
+# 生成 Verilog 的目标
+verilog: $(VERILOG_DIR)/mkAudioPipeline.v
+
+$(VERILOG_DIR)/mkAudioPipeline.v: $(COMMON_DIR)/AudioPipeline.bsv
+	@echo "Generating Verilog for AudioPipeline..."
+	mkdir -p $(VERILOG_DIR)
+	bsc -verilog -vdir $(VERILOG_DIR) -bdir $(BSCDIR) -p +:. -p +:$(COMMON_DIR) -g mkAudioPipeline $<
+	@echo "Verilog generated in $(VERILOG_DIR)/"
+
+# 清理 Verilog 文件
+clean-verilog:
+	rm -rf $(VERILOG_DIR)
 
 PitchAdjust: PitchAdjust.bsv PitchAdjustTest.bsv
 	mkdir -p bscdir

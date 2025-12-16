@@ -12,7 +12,12 @@ import ComplexMP::*;
 module mkPitchAdjustTest (Empty);
 
     // For nbins = 8, S = 2, pitch factor = 2.0
-    PitchAdjust#(8, 16, 16, 16) adjust <- mkPitchAdjust(2, 2);
+    // PitchAdjust#(8, 16, 16, 16) adjust <- mkPitchAdjust(2, 2);
+    SettablePitchAdjust#(8, 16, 16, 16) pitch <- mkPitchAdjust(2);
+    Reg#(Bool) factorSet <- mkReg(False);
+
+    // Subinterface
+    PitchAdjust#(8, 16, 16, 16) adjust = pitch.adjust;
 
     Reg#(Bool) passed <- mkReg(True);
     Reg#(Bit#(32)) feed <- mkReg(0);
@@ -160,6 +165,13 @@ module mkPitchAdjustTest (Empty);
     to3[5] = cmplxmp(0.000000, tophase(0.000000));
     to3[6] = cmplxmp(9.216237, tophase(0.951681));
     to3[7] = cmplxmp(0.000000, tophase(0.000000));
+
+    rule setFactorRule if (!factorSet);
+        FixedPoint#(16, 16) factor = fromRational(2, 1);
+        pitch.setFactor.put(factor);
+        factorSet <= True;
+        $display("[Test] Set Pitch factor: 2.0");
+    endrule
 
     rule f0 (feed == 0); dofeed(ti1); endrule
     rule f1 (feed == 1); dofeed(ti2); endrule

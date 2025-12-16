@@ -9,6 +9,8 @@ module mkTestDriver (Empty);
 
     AudioProcessor pipeline <- mkAudioPipeline();
 
+    Reg#(Bool) factorSet <- mkReg(False);
+
     Reg#(File) m_in <- mkRegU();
     Reg#(File) m_out <- mkRegU();
 
@@ -16,6 +18,13 @@ module mkTestDriver (Empty);
     Reg#(Bool) m_doneread <- mkReg(False);
 
     Counter#(32) m_outstanding <- mkCounter(0);
+
+    rule setFactor if (!factorSet);
+        FixedPoint#(16, 16) factor = 2.0;
+        audioProc.setFactor.put(factor);
+        factorSet <= True;
+        $display("[Test] Set pitch factor: 2.0");
+    endrule
 
     rule init(!m_inited);
         m_inited <= True;

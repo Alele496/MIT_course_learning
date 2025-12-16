@@ -10,11 +10,14 @@ import FShow::*;
 import AudioPipeline::*;
 import AudioProcessorTypes::*;
 
+import FixedPoint::*;
+
 // interface used by software
 interface MyDutRequest;
     // Bit#(n) is the only supported argument type for request methods
     method Action putSampleInput (Bit#(16) in);
     method Action reset_dut();
+    method Action setFactor(Bit#(32) factorPkt);  // New interface
 endinterface
 
 // interface used by hardware to send a message back to software
@@ -62,6 +65,12 @@ module mkMyDut#(MyDutIndication indication) (MyDut);
         method Action reset_dut;
             my_rst.assertReset; // assert my_rst.new_rst signal
             isResetting <= True;
+        endmethod
+
+        method Action setFactor (Bit#(32) factorPkt) if (!isResetting);
+            $display("[mkMyDut] Get pitch factor: %d", factorPkt);
+            FixedPoint#(16, 16) factor = unpack(factorPkt);
+            ap.setFactor(factor);
         endmethod
     endinterface
 endmodule

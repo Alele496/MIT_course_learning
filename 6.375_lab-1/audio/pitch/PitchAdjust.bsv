@@ -15,11 +15,20 @@ typedef Server#(
 ) PitchAdjust#(numeric type nbins, numeric type isize, numeric type fsize, numeric type psize);
 
 
+interface SettablePitchAdjust#(
+        numeric type nbins, numeric type isize,
+        numeric type fsize, numeric type psize
+    );
+
+    interface PitchAdjust#(nbins, isize, fsize, psize) adjust; 
+    interface Put#(FixedPoint#(isize, fsize)) setFactor; 
+endinterface
+
 // s - the amount each window is shifted from the previous window.
 //
 // factor - the amount to adjust the pitch.
 //  1.0 makes no change. 2.0 goes up an octave, 0.5 goes down an octave, etc...
-module mkPitchAdjust(Integer s, FixedPoint#(isize, fsize) factor, PitchAdjust#(nbins, isize, fsize, psize) ifc)
+module mkPitchAdjust(Integer s, SettablePitchAdjust#(nbins, isize, fsize, psize) ifc)
         provisos(
             Add#(psize, a_, isize), // isize >= psize
             Add#(a__, psize, TAdd#(isize, isize)),
@@ -41,6 +50,10 @@ module mkPitchAdjust(Integer s, FixedPoint#(isize, fsize) factor, PitchAdjust#(n
     
     // TODO: implement this module 
 
+    // Maybe type ensure valid values are entered
+    // Reg#(FixedPoint#(isize, fsize)) factor <- mkReg(0);
+    Reg#(Maybe#(FixedPoint#(isize, fsize))) factorReg <- mkReg(tagged Invalid);
+
     // Input, Output FIFO
     FIFO#(Vector#(nbins, ComplexMP#(isize, fsize, psize))) inputFIFO <- mkFIFO();
     FIFO#(Vector#(nbins, ComplexMP#(isize, fsize, psize))) outputFIFO <- mkFIFO();
@@ -51,7 +64,7 @@ module mkPitchAdjust(Integer s, FixedPoint#(isize, fsize) factor, PitchAdjust#(n
     Vector#(nbins, Reg#(Phase#(psize))) out_phases <- replicateM(mkReg(0));
 
     // processor
-    rule process_frame;
+    rule process_frame if (factorReg matches tagged Valid .factor);
 
         Vector#(nbins, ComplexMP#(isize, fsize, psize)) in_vec = replicate(cmplxmp(0, 0));
         Vector#(nbins, ComplexMP#(isize, fsize, psize)) out_vec = replicate(cmplxmp(0, 0));
@@ -102,6 +115,7 @@ module mkPitchAdjust(Integer s, FixedPoint#(isize, fsize) factor, PitchAdjust#(n
 
     endrule
 
+    /* 
     interface Put request;
         method Action put(Vector#(nbins, ComplexMP#(isize, fsize, psize)) x);
             inputFIFO.enq(x);
@@ -109,6 +123,22 @@ module mkPitchAdjust(Integer s, FixedPoint#(isize, fsize) factor, PitchAdjust#(n
     endinterface
 
     interface Get response = toGet(outputFIFO);
+    */
+    interface PitchAdjust adjust;
+        interface Put request;
+            method Action put(Vector#(nbins, ComplexMP#(isize, fsize, psize)) x);
+                inputFIFO.enq(x);
+            endmethod
+        endinterface
+        interface Get response = toGet(outputFIFO);
+    endinterface
+
+    interface Put setFactor;
+        method Action put(FixedPoint#(isize, fsize) x) if(!isValid(factorReg));
+            // factor <= x;
+            factorReg <= tagged Valid x;
+        endmethod
+    endinterface
 
 endmodule
 

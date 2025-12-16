@@ -6,15 +6,24 @@ import Reg6375::*;
 export AudioProcessorTypes::*;
 export Reg6375::*;
 
-typedef Int#(16) Sample;
+typedef 8 N;
+typedef 2 S;
+typedef 2 FACTOR;
+typedef 16 ISIZE;
+typedef 16 FSIZE;
+typedef 16 PSIZE;
+
+
+typedef Int#(ISIZE) Sample;
 
 interface AudioProcessor;
     method Action putSampleInput(Sample in);
     method ActionValue#(Sample) getSampleOutput();
+    method Action setFactor(FixedPoint#(ISIZE, FSIZE) factor); 
 endinterface
 
 
-typedef Complex#(FixedPoint#(16, 16)) ComplexSample;
+typedef Complex#(FixedPoint#(ISIZE, FSIZE)) ComplexSample;
 
 // Turn a real Sample into a ComplexSample.
 function ComplexSample tocmplx(Sample x);
