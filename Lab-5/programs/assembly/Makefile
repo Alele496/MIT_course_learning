@@ -1,7 +1,6 @@
 #=======================================================================
 # Makefile for riscv-tests/isa
 #-----------------------------------------------------------------------
-
 asmdir := $(CURDIR)
 
 asm_build_dir := $(asmdir)/../build/assembly
@@ -15,7 +14,7 @@ default: all
 # Sources
 #--------------------------------------------------------------------
 rv32ui_tests = \
-	simple \
+    simple \
 	add addi \
 	and andi \
 	auipc \
@@ -38,18 +37,23 @@ rv32ui_tests = \
 # Build rules
 #--------------------------------------------------------------------
 
-RISCV_TOOL_DIR = /mit/6.175/rv32-gcc/bin
+# RISCV_TOOL_DIR = /opt/riscv/bin
+# RISCV_TOOL_DIR = /opt/riscv32/bin
+RISCV_TOOL_DIR = /home/sk/Desktop/MIT实验环境/risc-v/riscv32-elf-ubuntu-22.04-gcc/riscv/bin
 RISCV_PREFIX = $(RISCV_TOOL_DIR)/riscv32-unknown-elf
 # gcc
 RISCV_GCC = $(RISCV_PREFIX)-gcc
-RISCV_GCC_OPTS = -m32 -static -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=RVI
+#RISCV_GCC_OPTS =  -m32 -static -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=RVI
+RISCV_GCC_OPTS = -static -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=rv32i_zicsr -mabi=ilp32
+
 incs := -I$(asmdir)/../env -I$(asmdir)/macros
 # link
 RISCV_LINK_OPTS = -T$(asmdir)/link.ld
 # objdump
 RISCV_OBJDUMP = $(RISCV_PREFIX)-objdump --disassemble --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 # convert to VMH: 64KB memory
-RISCV_ELF2HEX = $(RISCV_TOOL_DIR)/elf2hex
+ELF2HEX_TOOL_DIR = /usr/local/bin
+RISCV_ELF2HEX = $(ELF2HEX_TOOL_DIR)/elf2hex
 VMH_WIDTH = 8
 VMH_DEPTH = 65536
 
@@ -72,8 +76,11 @@ $(rv32ui_tests_bin): %.riscv: %.S
 $(rv32ui_tests_vmh): %.riscv.vmh: %.riscv
 	@echo $(basename $<)
 	@echo "@0" > $(asm_build_vmh_dir)/temp
-	$(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
-	python $(asmdir)/../trans_vmh.py $(asm_build_vmh_dir)/temp $(asm_build_vmh_dir)/$@
+	# $(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
+	$(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
+	# $(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $< >> $(asm_build_vmh_dir)/temp
+	python3 $(asmdir)/../trans_vmh.py $(asm_build_vmh_dir)/temp $(asm_build_vmh_dir)/$@
+
 
 $(rv32ui_tests_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $(asm_build_bin_dir)/$< > $(asm_build_dump_dir)/$@
@@ -93,7 +100,7 @@ $(asm_build_vmh_dir):
 	mkdir -p $@
 
 
-all: $(asm_build_bin_dir) $(asm_build_obj_dir) $(asm_build_dump_dir) $(asm_build_vmh_dir) $(rv32ui_tests_dump) $(rv32ui_tests_vmh)
+all: $(asm_build_bin_dir) $(asm_build_obj_dir) $(asm_build_dump_dir) $(rv32ui_tests_dump) $(asm_build_vmh_dir) $(rv32ui_tests_vmh)
 
 
 #------------------------------------------------------------
@@ -104,5 +111,3 @@ clean:
 
 
 .PHONY: all clean
-
-

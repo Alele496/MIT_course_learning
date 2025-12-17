@@ -39,18 +39,22 @@ bmarks_host = \
 HOST_OPTS = -std=gnu99 -DPREALLOCATE=0 -DHOST_DEBUG=1 -I$(bmarkdir)/common
 HOST_COMP = gcc $(HOST_OPTS)
 
-RISCV_TOOL_DIR = /mit/6.175/rv32-gcc/bin
+# RISCV_TOOL_DIR = /opt/riscv32/bin
+RISCV_TOOL_DIR = /home/sk/Desktop/MIT实验环境/risc-v/riscv32-elf-ubuntu-22.04-gcc/riscv/bin
 RISCV_PREFIX = $(RISCV_TOOL_DIR)/riscv32-unknown-elf
 # gcc
 RISCV_GCC = $(RISCV_PREFIX)-gcc
-RISCV_GCC_OPTS = -static -Wa,-march=RVI -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
+# RISCV_GCC_OPTS = -static -Wa,-march=RVI -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
+RISCV_GCC_OPTS = -static -mabi=ilp32 -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -Wa,-march=rv32i_zicsr
+
 # link
 RISCV_LINK = $(RISCV_GCC) -T$(bmarkdir)/common/test.ld $(incs) -I$(bmarks_build_obj_dir)/
 RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc -lgcc
 # objdump
 RISCV_OBJDUMP = $(RISCV_PREFIX)-objdump --disassemble --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 # convert to VMH: 64KB memory
-RISCV_ELF2HEX = $(RISCV_TOOL_DIR)/elf2hex
+ELF2HEX_TOOL_DIR = /usr/local/bin
+RISCV_ELF2HEX = $(ELF2HEX_TOOL_DIR)/elf2hex
 VMH_WIDTH = 8
 VMH_DEPTH = 65536
 
@@ -78,8 +82,9 @@ bmarks_cycles = 80000
 $(bmarks_riscv_vmh): %.riscv.vmh: %.riscv
 	@echo $(basename $<)
 	@echo "@0" > $(bmarks_build_vmh_dir)/temp
-	$(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(bmarks_build_bin_dir)/$< >> $(bmarks_build_vmh_dir)/temp
-	python $(bmarkdir)/../trans_vmh.py $(bmarks_build_vmh_dir)/temp $(bmarks_build_vmh_dir)/$@
+	# $(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(bmarks_build_bin_dir)/$< >> $(bmarks_build_vmh_dir)/temp
+	$(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $(bmarks_build_bin_dir)/$< >> $(bmarks_build_vmh_dir)/temp
+	$(bmarkdir)/../trans_vmh.py $(bmarks_build_vmh_dir)/temp $(bmarks_build_vmh_dir)/$@
 
 $(bmarks_riscv_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $(bmarks_build_bin_dir)/$< > $(bmarks_build_dump_dir)/$@
