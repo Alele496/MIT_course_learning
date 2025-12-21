@@ -1,4 +1,21 @@
-CONNECTALDIR ?= /opt/connectal
+CONNECTALDIR ?= /home/sk/Desktop/MIT2.0/sk-host/Lab/6.175lab5/connectal
+
+export BLUESPECDIR = /home/sk/Desktop/MIT-tools/bsc/bsc-2025.07-ubuntu-22.04/lib
+export BSC = /home/sk/Desktop/MIT-tools/bsc/bsc-2025.07-ubuntu-22.04/bin/bsc
+export PATH := /home/sk/Desktop/MIT-tools/bsc/bsc-2025.07-ubuntu-22.04/bin:$(PATH)
+
+# BSC 编译标志
+BSC_LIB_PATHS = \
+    -p +:$(BLUESPECDIR)/Libraries \
+    -p +:$(BLUESPECDIR)/Libraries/FPGA \
+    -p +:$(BLUESPECDIR)/Libraries/FPGA/Xilinx
+
+BSC_FLAGS = $(BSC_LIB_PATHS) \
+    -show-range-conflict \
+    -steps-warn-interval 100000 \
+    -no-show-timestamps \
+    -aggressive-conditions
+
 S2H_INTERFACES = \
 	ConnectalProcRequest:ConnectalWrapper.connectProc
 H2S_INTERFACES = \

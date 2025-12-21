@@ -5,8 +5,8 @@
 import Types::*;
 import ProcTypes::*;
 import CMemTypes::*;
-import MemInit::*;
 import RFile::*;
+import MemInit::*;
 import DMemory::*;
 import Decode::*;
 import Exec::*;
@@ -17,54 +17,40 @@ import Ehr::*;
 import GetPut::*;
 
 typedef enum {
-	Fetch,
-	Execute
+    Fetch, 
+    Execute
 } Stage deriving(Bits, Eq, FShow);
 
 (* synthesize *)
 module mkProc(Proc);
     Reg#(Addr) pc <- mkRegU;
     RFile      rf <- mkRFile;
-    DMemory   mem <- mkDMemory;
-	let dummyInit <- mkDummyMemInit;
+    DMemory  mem <- mkDMemory;
     CsrFile  csrf <- mkCsrFile;
 
-    Bool memReady = mem.init.done && dummyInit.done;
+    Reg#(Stage) stage <- mkReg(Fetch);
+
+    Bool memReady = mem.init.done();
+    Reg#(DecodedInst) dInst <- mkRegU();
+
     rule test (!memReady);
-      let e = tagged InitDone;
-      mem.init.request.put(e);
-      dummyInit.request.put(e);
+	    let e = tagged InitDone;
+	    mem.init.request.put(e);
     endrule
 
-    //stage tracker and instruction holder
-    Reg#(Stage) state <- mkReg(Fetch); 
-    Reg#(Data) f2d <- mkRegU; 
-
-    rule doFetch(csrf.started && state == Fetch);
-
-        //load instruction from mem
+    rule doFetch(csrf.started && (stage == Fetch) && memReady);
         Data inst <- mem.req(MemReq{op: Ld, addr: pc, data: ?});
 
-        //store the instruction in f2d
-        f2d <= inst;
+        // Decode
+        dInst <= decode(inst);
+        stage <= Execute;
 
-        //change state to execute
-        state <= Execute;
-
-        // trace - print the instruction
-        $display("pc: %h inst: (%h) expanded: ", pc, inst, showInst(inst));
+        // Trace-stdout
+        $display("pc: %h inst: (%h) expanded:", pc, inst, showInst(inst));
         $fflush(stdout);
-
- 
     endrule
 
-    rule doExecute(csrf.started && state == Execute);
-
-        //fetch the stored inst in f2d
-        Data inst = f2d; 
-
-        // decode
-        DecodedInst dInst = decode(inst);
+    rule doExecute(csrf.started && (stage == Execute) && memReady);
 
         // read general purpose register values 
         Data rVal1 = rf.rd1(fromMaybe(?, dInst.src1));
@@ -75,15 +61,17 @@ module mkProc(Proc);
 
         // execute
         ExecInst eInst = exec(dInst, rVal1, rVal2, pc, ?, csrVal);  
-        // The fifth argument above is the predicted pc, to detect if it was mispredicted. 
-        // Since there is no branch prediction, this field is sent with a random value
+		// The fifth argument above is the predicted pc, to detect if it was mispredicted. 
+		// Since there is no branch prediction, this field is sent with a random value
 
-        // memory 
-        if(eInst.iType == Ld) begin 
+        // memory
+        if(eInst.iType == Ld) begin
             eInst.data <- mem.req(MemReq{op: Ld, addr: eInst.addr, data: ?});
-        end else if(eInst.iType == St) begin 
+        end else if(eInst.iType == St) begin
             let d <- mem.req(MemReq{op: St, addr: eInst.addr, data: eInst.data});
         end
+
+		// commit
 
 
         // check unsupported instruction at commit time. Exiting
@@ -91,7 +79,36 @@ module mkProc(Proc);
             $fwrite(stderr, "ERROR: Executing unsupported instruction at pc: %x. Exiting\n", pc);
             $finish;
         end
-     
+
+		/* 
+		// These codes are checking invalid CSR index
+		// you could uncomment it for debugging
+		// 
+		// check invalid CSR read
+		if(eInst.iType == Csrr) begin
+			let csrIdx = fromMaybe(0, eInst.csr);
+			case(csrIdx)
+				csrCycle, csrInstret, csrMhartid: begin
+					$display("CSRR reads 0x%0x", eInst.data);
+				end
+				default: begin
+					$fwrite(stderr, "ERROR: read invalid CSR 0x%0x. Exiting\n", csrIdx);
+					$finish;
+				end
+			endcase
+		end
+		// check invalid CSR write
+		if(eInst.iType == Csrw) begin
+			let csrIdx = fromMaybe(0, eInst.csr);
+			if(csrIdx != csrMtohost) begin
+				$fwrite(stderr, "ERROR: invalid CSR index = 0x%0x. Exiting\n", csrIdx);
+				$finish;
+			end
+			else begin
+				$display("CSRW writes 0x%0x", eInst.data);
+			end
+		end
+		*/
 
         // write back to reg file
         if(isValid(eInst.dst)) begin
@@ -104,8 +121,8 @@ module mkProc(Proc);
         // CSR write for sending data to host & stats
         csrf.wr(eInst.iType == Csrw ? eInst.csr : Invalid, eInst.data);
 
-        //switch state back to fetch
-        state <= Fetch;
+        // Set stage
+        stage <= Fetch;
     endrule
 
     method ActionValue#(CpuToHostData) cpuToHost;
@@ -115,10 +132,12 @@ module mkProc(Proc);
 
     method Action hostToCpu(Bit#(32) startpc) if ( !csrf.started && memReady );
         csrf.start(0); // only 1 core, id = 0
+	$display("Start at pc 200\n");
+	$fflush(stdout);
         pc <= startpc;
     endmethod
 
-	interface iMemInit = dummyInit;
+    interface iMemInit = mem.init;
     interface dMemInit = mem.init;
 endmodule
 

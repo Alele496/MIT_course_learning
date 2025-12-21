@@ -39,7 +39,7 @@ rv32ui_tests = \
 
 # RISCV_TOOL_DIR = /opt/riscv/bin
 # RISCV_TOOL_DIR = /opt/riscv32/bin
-RISCV_TOOL_DIR = /home/sk/Desktop/MIT实验环境/risc-v/riscv32-elf-ubuntu-22.04-gcc/riscv/bin
+RISCV_TOOL_DIR = /home/sk/Desktop/MIT-tools/risc-v/riscv32-elf-ubuntu-22.04-gcc/riscv/bin
 RISCV_PREFIX = $(RISCV_TOOL_DIR)/riscv32-unknown-elf
 # gcc
 RISCV_GCC = $(RISCV_PREFIX)-gcc
@@ -67,20 +67,19 @@ VPATH += $(asm_build_vmh_dir)
 # Build assembly tests
 
 rv32ui_tests_bin  = $(addsuffix .riscv, $(rv32ui_tests))
+# rv32ui_tests_bin  = $(addprefix $(asm_build_bin_dir)/, $(addsuffix .riscv, $(rv32ui_tests)))
 rv32ui_tests_dump = $(addsuffix .riscv.dump, $(rv32ui_tests))
 rv32ui_tests_vmh = $(addsuffix .riscv.vmh, $(rv32ui_tests))
 
+# $(rv32ui_tests_bin): %.riscv: %.S
+# $(asm_build_bin_dir)/%.riscv: %.S
+#	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(incs) $(RISCV_LINK_OPTS) $< -o $(asm_build_bin_dir)/$@
 $(rv32ui_tests_bin): %.riscv: %.S
 	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(incs) $(RISCV_LINK_OPTS) $< -o $(asm_build_bin_dir)/$@
 
 $(rv32ui_tests_vmh): %.riscv.vmh: %.riscv
 	@echo $(basename $<)
-	@echo "@0" > $(asm_build_vmh_dir)/temp
-	# $(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
-	$(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
-	# $(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $< >> $(asm_build_vmh_dir)/temp
-	python3 $(asmdir)/../trans_vmh.py $(asm_build_vmh_dir)/temp $(asm_build_vmh_dir)/$@
-
+	python3 $(asmdir)/../generate_vmh.py $(asm_build_bin_dir)/$< $(asm_build_vmh_dir)/$@
 
 $(rv32ui_tests_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $(asm_build_bin_dir)/$< > $(asm_build_dump_dir)/$@
@@ -109,5 +108,5 @@ all: $(asm_build_bin_dir) $(asm_build_obj_dir) $(asm_build_dump_dir) $(rv32ui_te
 clean:
 	rm -rf $(asm_build_dir)
 
+.PHONY: all clean 
 
-.PHONY: all clean
