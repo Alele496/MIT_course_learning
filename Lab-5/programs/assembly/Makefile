@@ -30,7 +30,7 @@ rv32ui_tests = \
 	srl srli \
 	sub \
 	xor xori \
-	bpred_bht bpred_j bpred_ras \
+	bpred_bht bpred_j bpred_ras bpred_j_noloop\
 	cache \
 
 #--------------------------------------------------------------------
@@ -79,7 +79,10 @@ $(rv32ui_tests_bin): %.riscv: %.S
 
 $(rv32ui_tests_vmh): %.riscv.vmh: %.riscv
 	@echo $(basename $<)
-	python3 $(asmdir)/../generate_vmh.py $(asm_build_bin_dir)/$< $(asm_build_vmh_dir)/$@
+	@echo "@0" > $(asm_build_vmh_dir)/temp
+# 	$(RISCV_ELF2HEX) $(VMH_WIDTH) $(VMH_DEPTH) $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
+	$(RISCV_ELF2HEX) --bit-width $(VMH_WIDTH) --input $(asm_build_bin_dir)/$< >> $(asm_build_vmh_dir)/temp
+	$(asmdir)/../trans_vmh.py $(asm_build_vmh_dir)/temp $(asm_build_vmh_dir)/$@
 
 $(rv32ui_tests_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $(asm_build_bin_dir)/$< > $(asm_build_dump_dir)/$@
